@@ -969,6 +969,7 @@ mod test {
             elements,
             name: None,
             mapping: Vec::new(),
+            span: (0,0)
         };
 
         {

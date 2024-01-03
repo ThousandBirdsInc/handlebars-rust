@@ -24,6 +24,7 @@ pub struct Template {
     pub name: Option<String>,
     pub elements: Vec<TemplateElement>,
     pub mapping: Vec<TemplateMapping>,
+    pub span: (usize, usize)
 }
 
 #[derive(Default)]
@@ -217,8 +218,10 @@ impl Parameter {
 }
 
 impl Template {
-    pub fn new() -> Template {
-        Template::default()
+    pub fn new(span: Span) -> Template {
+        let mut tmpl = Template::default();
+        tmpl.span = (span.start(), span.end());
+        tmpl
     }
 
     fn push_element(&mut self, e: TemplateElement, line: usize, col: usize) {
@@ -581,7 +584,7 @@ impl Template {
                     // trailing string check
                     let (line_no, col_no) = span.start_pos().line_col();
                     if rule == Rule::raw_block_end {
-                        let mut t = Template::new();
+                        let mut t = Template::new(span);
                         t.push_element(
                             Template::raw_string(
                                 &source[prev_end..span.start()],
@@ -614,7 +617,7 @@ impl Template {
                 let (line_no, col_no) = span.start_pos().line_col();
                 match rule {
                     Rule::template => {
-                        template_stack.push_front(Template::new());
+                        template_stack.push_front(Template::new(span));
                     }
                     Rule::raw_text => {
                         // leading space fix
@@ -698,7 +701,7 @@ impl Template {
                         h.template = Some(t);
                     }
                     Rule::raw_block_text => {
-                        let mut t = Template::new();
+                        let mut t = Template::new(span);
                         t.push_element(
                             Template::raw_string(
                                 span.as_str(),
